@@ -71,17 +71,46 @@ class UserFlyweightFactory implements FlyweightRegistry {
 
     private static final Map<String, UserIntrinsicState> userRegistry = new HashMap<>();    // String - email
 
-    @Override
+   @Override
     public void addFlyweight(UserIntrinsicState flyweight) {
-        String email = flyweight.getEmail();
-        if (!userRegistry.containsKey(email)) {
-            userRegistry.put(email, flyweight);
+        if (flyweight == null || flyweight.getEmail() == null || flyweight.getEmail().isEmpty()) {
+            throw new IllegalArgumentException("Flyweight cannot be null, and email must be valid.");
         }
+        userRegistry.putIfAbsent(flyweight.getEmail(), flyweight);
     }
 
     @Override
     public UserIntrinsicState getFlyweight(String email) {
         return userRegistry.get(email);
+    }
+}
+
+public class Client {
+    public static void main(String[] args) {
+
+        UserFlyweightFactory flyweightFactory = new UserFlyweightFactory();
+
+        // Create and add intrinsic states
+        UserIntrinsicState intrinsic1 = new UserIntrinsicState("Alice", 25, "Female", "alice@example.com", "1234567890", new Byte[0]);
+        UserIntrinsicState intrinsic2 = new UserIntrinsicState("Bob", 30, "Male", "bob@example.com", "0987654321", new Byte[0]);
+
+        flyweightFactory.addFlyweight(intrinsic1);
+        flyweightFactory.addFlyweight(intrinsic2);
+
+        // Create extrinsic states
+        UserExtrinsicState extrinsic1 = new UserExtrinsicState(Colour.WHITE, 5);
+        UserExtrinsicState extrinsic2 = new UserExtrinsicState(Colour.BLACK, 3);
+
+        // Create ChessUsers with shared intrinsic states
+        ChessUser user1 = new ChessUser(flyweightFactory.getFlyweight("alice@example.com"), extrinsic1);
+        ChessUser user2 = new ChessUser(flyweightFactory.getFlyweight("bob@example.com"), extrinsic2);
+
+        // Display user details
+        System.out.println("User 1: " + user1.getIntrinsicState().getName() + ", Colour: " + user1.getExtrinsicState().getColour());
+        System.out.println("User 2: " + user2.getIntrinsicState().getName() + ", Colour: " + user2.getExtrinsicState().getColour());
+
+        // Validate Flyweight sharing
+        System.out.println("Intrinsic state shared: " + (user1.getIntrinsicState() == user2.getIntrinsicState())); // Should be false
     }
 }
 
